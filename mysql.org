@@ -1,0 +1,34 @@
+* mysql
+** 隔离级别
+*** read uncommited
+**** 可以读取未提交的记录，不会被使用
+*** read committed(RC)
+**** 只能读取已经提交的记录，一般数据库默认的级别
+**** 可能会导致同一个会话，2次读取的记录不一致
+**** 读取不加锁，写加锁
+*** repeatable read(RR)
+**** 统一会话读取到的记录是一致的
+**** 会导致幻读（mysql自行解决了幻读问题）
+**** 读取会加行锁，但是对insert无效
+*** serializable
+**** 完全串行化的读，每次都需要获得表级共享锁
+**** 性能低
+*** 参考http://tech.meituan.com/innodb-lock.html
+** 索引
+   
+* mysql 性能参数
+** 查询吞吐量
+*** Questions
+*** Com_select
+*** Com_Writes
+** 查询执行性能
+*** long_query_time
+** 链接情况
+*** max_connections
+*** Threads_connected
+*** aborted_connects
+** 缓冲池使用情况
+*** Innodb_buffer_pool_pages_total
+*** innodb_buffer_pool_read_requests
+*** innodb_buffer_pool_reads
+
