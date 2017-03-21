@@ -46,4 +46,3 @@ def mergesort(l,p,r):
 
 mergesort(x,0,len(l)-1)
 #+END_SRC
-

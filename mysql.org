@@ -1,4 +1,4 @@
-* mysql
+ * mysql
 ** 隔离级别
 *** read uncommited
 **** 可以读取未提交的记录，不会被使用
@@ -31,4 +31,41 @@
 *** Innodb_buffer_pool_pages_total
 *** innodb_buffer_pool_read_requests
 *** innodb_buffer_pool_reads
+* innodb
+** innodb 体系结构
+*** innodb存储引擎内存持
+*** 后台线程
+**** 主线程
+     负责刷新缓冲池数据（脏页、合并缓冲、undo页）
+**** io线程
+***** read thread
+***** write thread
+***** insert buffer
+***** log io thread
+**** purge thread
+     回收已经使用并分配的undo页
+**** page cleaner thread
+     负责脏页的刷新（较早前的版本再主线程处理），减轻主线程的压力
+*** 内存
+**** 缓冲池
+***** 缓存数据到缓冲池
+***** 数据页的修改通过checkpoint机制，而不是立即刷新
+***** 通过innodb_buffer_pool_size进行设置
+***** 缓存的数据如下
+****** 索引页
+****** 数据页
+****** undo 页
+****** 插入缓冲
+****** 自适应哈希索引
+****** innodb存储的锁信息
+****** 数据字典信息
+***** LRU进行管理（最近最少使用）
+****** midpoint innodb_old_blocks_pct控制，默认再LRU列表的5/8处
+****** midpoint之前的列表为new列表，之后的为old列表
+******* LRU old 加入到new部分称为 page made young
+******* 因为innodb_old_blocks_time 设置导致LRU old 没有移动到new部分的称为page not made young
+***** 重做日志缓冲
+****** 每s会进行刷新到日志文件
+***** 额外的内存池
+*** checkpoint
 
