@@ -1,0 +1,20 @@
+* 匿名函数捕获变量值
+
+#+BEGIN_SRC python
+x = 10
+a = lambda y: x + y
+x=20
+a = lambda y: x + y
+#+END_SRC
+
+这里a(10)和b(10)分别返回的是30,30，而不是20,30
+
+*原因: lambda表达式中的x是自由变量，在运行时绑定，而不是定义时绑定*
+
+如果要解决这个问题，需要如下处理
+
+
+#+BEGIN_SRC python
+a = lambda y, x=x: x + y
+#+END_SRC 
+
