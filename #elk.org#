@@ -1,0 +1,8 @@
+* aggregate 如何工作
+** filter需要"task_id" 关联同样任务的event
+** 在任务开始的时候，filter创建一个map，附加到task_id
+** 对于每一个event，你可以使用event/map执行code
+** 对于最后的event，可以执行最后的code（例如，增加map data to 最后的event）
+** 在最后的event后，附加给map的task被删除(end_of_task=true)
+** 聚合的map被连接给一个任务id
+** 

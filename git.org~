@@ -1,0 +1,14 @@
+* git 
+** git log 显示历史记录
+** HEAD表示当前版本，上一个版本HEAD^，上上一个版本HEAD^^,上X个版本HEAD～X
+** git reset 恢复旧版本  git reset --hard HEAD^
+** git reflog 记录每一次命令
+** 工作区和暂存区
+*** 工作区
+工作目录
+*** 版本库
+**** stage 暂存区
+**** git自动建立的master分支，以及指向master的指针HEAD
+git add 向暂存区添加文件
+git commit 暂存区向master提交文件，提交后state就会被清空
+** git管理的是修改而非文件

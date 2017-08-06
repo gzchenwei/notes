@@ -1,0 +1,26 @@
+c = consumer() 产生一个生成器，并没有运行
+
+produce(c) 
+
+1 调用c.next()
+r=''
+n = '' 暂停
+n = 0
+while 0 < 5
+n = 1
+
+print 1
+r = c.send(1)
+
+consumer()
+n = 1
+print 1
+r = '200 ok'
+n = yield r
+r = '200 ok'
+print Consumer return '200 ok'
+
+while 1 < 5
+n = 2
+print 2
+r = c.send(2)
