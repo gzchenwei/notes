@@ -108,12 +108,108 @@ POST /website/blog/1/_update
 }
 ```
 
+* 设置ctx.op为delete删除基于内容的文档
+
+```
+POST /website/blog/1/_update
+{
+   "script" : "ctx.op = ctx._source.views == count ? 'delete' : 'none'",
+    "params" : {
+        "count": 1
+    }
+}
+```
+
+* 更新的文档不存在
+
+upsert 参数，制定文档不存在则创建
+
+```
+POST /website/pageviews/1/_update
+{
+   "script" : "ctx._source.views+=1",
+   "upsert": {
+       "views": 1
+   }
+}
+```
+
+第一次运行是，upsert作为新文档被索引 ，初始化views为1，后续的运行中，文档存在，script更新操作替代upsert应用
+
+* 更新和冲突
+
+如果
+retry_on_conflict 设置失败之前重试的次数
+
+* 取回多个文档
+
+mget api将多个检索请求放到一个请求中，可以加快速度
+
+多个请求中，如果其中一个未找到，并不妨碍其他文档被检索到，同时，请求的http状态码仍然为200，如果需要查看某个文档是否查找到，需要检查found标记
+
+* 较小的代价批量操作
+
+mget允许批量取回多个文档，bulk api允许在单个步骤中进行多次的create\index\update\delete请求
+格式
+{action:{metadata}}\n
+{request body }\n
+{action:{metadata}}\n
+{request body}\n
+
+默认配置，http的请求长度应该是不能超出100M，如果超出则需要调整http.max_content_length设置
+
+一般建议bulk请求体的大小在15Mb，这里的15M，仅仅是指请求体的字节数，而不是bulk size，
+
+bulk size 一般指数据的条目数
+
+### 路由一个文档到一个分片
+
+当索引一个文档时，文档会被存储在一个主分片中，决定文档存储在那个分片的公式
+
+```
+shard=hash(routing) % number_of_primary_shards
+```
+* routing是可变值，默认是文档的_id,也可以自定义。分片分布在0 - 
+* nuber_of_primary_shards-1之间
+* 主分片的数量不能更改，更改后无法找到文档
+
+所有的文档api都可以接受routing的路由参数，通过这个参数可以自定义文档到分片的映射，一个自定义的路由参数可以用来确保所有相关的文档--例如同一个用户的文档--被存储在同一分片 
+
+### 主分片和副本分片交互
+
+可以将请求发送到集群的任意节点，每个节点都有能力处理请求，每个节点知道集群中任意文档位置,接收到请求的节点称为 **协调节点**
 
 
+**发送请求的时候，为了负载均衡，更好的做法是轮训集群中所有节点**
+
+* 新建、索引、删除文档
+
+客户端 -->  协调节点 --> 主节点 --> 复制节点 --> 主节点 --> 协调节点 --> 客户端
 
 
+![new](op.jpg)
 
 
+* consistency
+
+默认设置下，在执行写操作前，主分片都要求必须有规定数量的分片副本处于活跃可用状态，才会去执行写操作
+
+规定数量公式：
+
+```
+int(primary + number_of_replicas)/2) + 1
+```
+
+consistency可以设置为one、all、quorum默认值为quorum
+
+** 新索引默认1个副本分片，这意味需要有2个活动的分片副本，但是默认的设置会阻止只有单一节点的情况，为了避免这个问题，只有number_of_replicas>1 规定才会执行**
+
+* 局部更新文档
+![update](update.jpg)
+    +  客户端向node 1 发送更新请求
+    +  请求转发到主分片node 3
+    +  node 3 从主分片检索文档，修改_source中的JSON，并且尝试重新索引主分片的文档，如果文档被另一个进程修改，会重试步骤3，超过retry_on_conflict后放弃
+    + 
 
 
 
