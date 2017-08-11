@@ -400,3 +400,137 @@ bool查询可以将多查询组合一起，接受以下参数
       如果满足语句中的任意语句，将增加_score
 * filter
       必须匹配，但不评分
+
+### 验证查询
+```
+GET /gb/tweet/_validate/query?explain
+```
+
+### 索引管理
+
+#### 创建一个索引
+```
+PUT /my_index
+{
+  "settings": { ... any settings ...}
+  "mappings": {
+    "type_one": { ... any mappings ...}
+    "type_two": { ... any mappings ...}
+    ...
+  }
+}
+```
+#### 删除索引
+* 删除一个索引
+```
+delete /my_index
+```
+删除多个索引
+```
+delete /index_one,index_two
+delete /index_*
+delete /_all
+delete /*
+```
+#### 索引设置
+下面是2个最重要的设置
+number_of_primary_shards
+    每个索引的主分片数，默认为5，索引创建后不能修改
+number_of_replicas
+    每个主分片的副本数，默认为1，可以随时修改
+```
+PUT /my_temp_index
+{
+    "settings": {
+        "number_of_shards" :   1,
+        "number_of_replicas" : 0
+    }
+}
+
+PUT /my_temp_index/_settings
+{
+    "number_of_replicas": 1
+}
+```
+### 配置分析器
+
+#### 自定义分析器
+分析器就是一个包里面组合了三种函数的一个包装器，三种函数按照顺序执行
+
+字符过滤器/分词器/词单元过滤器
+
+#### 创建一个自定义分析器
+```
+PUT /my_index
+{
+    "settings": {
+        "analysis": {
+            "char_filter": { ... custom character filters ... },
+            "tokenizer":   { ...    custom tokenizers     ... },
+            "filter":      { ...   custom token filters   ... },
+            "analyzer":    { ...    custom analyzers      ... }
+        }
+    }
+}
+```
+示例：
+```
+* 使用html清除字符过滤器移除html部分
+* 使用一个自定义的映射字符过滤器把&替换为"和":
+"char_filter": {
+    "&_to_and": {
+        "type":       "mapping",
+        "mappings": [ "&=> and "]
+    }
+}
+```
+* 使用标准分词器分词
+* 小写词条，使用小写过滤器处理
+* 使用自定义停止词过滤器移除自定义的停止次列表中包含的词
+```
+"filter": {
+    "my_stopwords": {
+        "type":        "stop",
+        "stopwords": [ "the", "a" ]
+    }
+}
+```
+
+分析器定义用之前已经设置好的自定义过滤器组合
+```
+"analyzer": {
+    "my_analyzer": {
+        "type":           "custom",
+        "char_filter":  [ "html_strip", "&_to_and" ],
+        "tokenizer":      "standard",
+        "filter":       [ "lowercase", "my_stopwords" ]
+    }
+}
+```
+完整的创建索引请求如下：
+```
+PUT /my_index
+{
+    "settings": {
+        "analysis": {
+            "char_filter": {
+                "&_to_and": {
+                    "type":       "mapping",
+                    "mappings": [ "&=> and "]
+            }},
+            "filter": {
+                "my_stopwords": {
+                    "type":       "stop",
+                    "stopwords": [ "the", "a" ]
+            }},
+            "analyzer": {
+                "my_analyzer": {
+                    "type":         "custom",
+                    "char_filter":  [ "html_strip", "&_to_and" ],
+                    "tokenizer":    "standard",
+                    "filter":       [ "lowercase", "my_stopwords" ]
+            }}
+}}}
+```
+
+
