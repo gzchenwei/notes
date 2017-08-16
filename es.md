@@ -532,5 +532,71 @@ PUT /my_index
             }}
 }}}
 ```
+### 类型和映射
+
+从技术上讲，多个类型可以在相同的索引中，只要他们的字段不冲突
+类型可以很好的区分同一个集合中的不同细分，在不同的细分中数据的整体模式是相同的
+
+如果有2个不同的类型，每个类型都有同名的字段，但映射不同，es将不会允许定义这个映射
+
+每个lucene索引中的所有字段包含一个单一、扁平的模式，一个特定字段可以映射成string类型也可以是number，但是不能兼具
+
+
+以上简单的说就是在一个索引里面，不同的type里面，同一个名称字段不能映射不同的类型
+
+以下是具体的案例，从下面的映射看，在lucense里面，会将json数据映射到一个扁平的模式里面，在这个模式里面是没有type的
+```
+{
+   "data": {
+      "mappings": {
+         "people": {
+            "properties": {
+               "name": {
+                  "type": "string",
+               },
+               "address": {
+                  "type": "string"
+               }
+            }
+         },
+         "transactions": {
+            "properties": {
+               "timestamp": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+               },
+               "message": {
+                  "type": "string"
+               }
+            }
+         }
+      }
+   }
+}
+```
+```
+{
+   "data": {
+      "mappings": {
+        "_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "name": {
+          "type": "string"
+        }
+        "address": {
+          "type": "string"
+        }
+        "timestamp": {
+          "type": "long"
+        }
+        "message": {
+          "type": "string"
+        }
+      }
+   }
+}
+```
 
 
