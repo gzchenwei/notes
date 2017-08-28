@@ -101,8 +101,7 @@ exp 包含
 
 #### @metadata字段
 
-1.5版本后增加了@metadata字段，这个字段不包含在events里面，
-
+1.5版本后增加了@metadata字段，这个字段不包含在events里面
 ```
 input { stdin { } }
 
@@ -118,6 +117,7 @@ output {
   }
 }
 ```
+
 输出如下：
 ```
 $ bin/logstash -f ../test.conf
@@ -135,27 +135,22 @@ asdf
 如果希望在输出显示完整的metadata数据（仅仅只有rubydebug才允许显示)
 ```
  stdout { codec => rubydebug { metadata => true } }
- ```
- 
- @metadata最常用应该是在date字段的过滤
- 在次之前，在处理nginx或者apache日志的时候，需要delete时间戳字段，然后使用日志的字段去覆盖，使用@metadata字段，就不需要这样了
- ```
+```
+@metadata最常用应该是在date字段的过滤，在此之前，在处理nginx或者apache日志的时候，需要delete时间戳字段，然后使用日志的字段去覆盖，使用@metadata字段，就不需要这样了
+```
  input { stdin { } }
 
 filter {
   grok { match => [ "message", "%{HTTPDATE:[@metadata][timestamp]}" ] }
   date { match => [ "[@metadata][timestamp]", "dd/MMM/yyyy:HH:mm:ss Z" ] }
 }
-
 output {
   stdout { codec => rubydebug }
 }
 ```
-配置提取真实的时间到[@metadata][timestamp]字段
- 
  #### 环境变量
- 
- ```
+
+```
  export TCP_PORT=12345
  input {
   tcp {
@@ -174,14 +169,43 @@ input {
 ```
 变量是不可变的，如果需要修改，需要重启logstash
 
+### 配置多行事件
 
- 
+配置多行codec最重要的特征：
+1 pattern 选项指定正则，匹配正则的行或者是前行的延续，或者开始一个新的多行
+2 what选项 有2个值：previous /next ,previous 指定匹配正则的行是前行的一部分，next 指定匹配正则的行following line的一部分
+3 negate选项 应用多行解码器到不匹配正则表达式的行
 
+示例：
+处理java stack traces
+```
+input {
+  stdin {
+    codec => multiline {
+      pattern => "^\s"
+      what => "previous"
+    }
+  }
+}
+```
+不包含时间戳的行都属于前行
+```
+input {
+  file {
+    path => "/var/log/someapp.log"
+    codec => multiline {
+      pattern => "^%{TIMESTAMP_ISO8601} "
+      negate => true
+      what => previous
+    }
+  }
+}
+```
 
-
-
-
-
-
-
-
+### glob pattern支持
+\* 匹配任何文件 ，如果需要匹配隐藏文件，需要使用.*
+\*\* 匹配递归目录
+? 匹配任何单个字符
+[set] 匹配任何在set里面的单个字符
+{p,q} 匹配等价于(p|q）
+\\
