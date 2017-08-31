@@ -209,3 +209,12 @@ input {
 [set] 匹配任何在set里面的单个字符
 {p,q} 匹配等价于(p|q）
 \\
+
+### data resiliency （不知道怎么翻译，大概意思是数据弹性）
+为了防止因为数据导致logstash异常，logstash提供了2种数据弹性特性
+* 永久队列：事件存储到磁盘
+* dead letter 队列：无法处理的队列，可以使用dead_letter_queue 数据插件重新处理
+
+#### Persistent Queues
+缺省情况下，logstash使用了有限内存队列来处理事件，如果机器临时fail，则数据会丢失
+**内存队列是固定的不可配置**
