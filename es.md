@@ -695,3 +695,148 @@ es基于lucene，lucene引入了按段搜索的概念，每一段都是一个倒
     - 一个提交点写入硬盘
     - 文件系统fsync到硬盘
     - translog被清除
+
+### 深入搜索
+
+#### term/terms过滤
+
+term/terms是包含操作，而非等值判断
+如果期望得到完全相等的行为，最好的方式是增加并索引另一个字段
+
+
+### 全文搜索
+
+#### 基于词项的查询
+如term和fuzzy这样的查询，不需要分析阶段，他们对单个词项进行操作，用term查询词项foo 只要在倒排索引查找'准确词项',并且用TF/IDF算法为每个包含词项的文档计算相关度评分
+
+term查询只对倒排索引的词项精确匹配，不会对词的多样性进行处理（比如foo或者FOO）
+
+#### 基于全文的搜索
+像match或query_string这样的查询是高层查询，他们了解映射字段的信息
++ 如果查询日期或者整数字段，他们会讲查询字符串分别作为日期或整数对待
++ 如果查询一个（not analyzed）未分析的精确值字符串字段，他们会讲整个查询字符串作为单个词项对待
++ 如果查询一个已分析的全文字段，它们会先将查询字符串传递到一个合适的分析器，然后生成一个供查询的词项列表
+
+#### 匹配查询
+match是个核心查询，它是一个高级全文查询，既能查询全文字段，又能处理精确字段
+
++ 单个词查询
+```
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match": {
+            "title": "QUICK!"
+        }
+    }
+}
+```
+es执行上面的match查询的步骤
+1、检查字段类型
+title是一个string类型，意味着查询字符串需要分析
+2、分析查询字符串
+将QUICK传入标准分析器，输出的结果是单个项quick，因为只有一个单词项，所以match查询执行的是单个底层term查询
+3、查找匹配文档
+用term查询在倒排索引中查找quick，然后获取一组包含该项的文档
+4、为每个文档评分
+用 term 查询计算每个文档相关度评分 _score
+
++ 多次查询
+```
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match": {
+            "title": "BROWN DOG!"
+        }
+    }
+}
+```
+内部执行2次term查询，然后将2次查询的结果合并
+
+
+
+
+### query string query
+
+top level 参数
+query  需要被解析的查询
+default_field   如果不指定，默认是_all，如果_all被禁止，会自动选择可查询的字段
+default_operator 默认为OR
+analyzer 分析器名称
+
+#### 多字段
+使用fields参数
+fields: ["field1", "field2"]
+字段之间默认是OR操作
+
+#### query string语法
+
+* field names
+
+status:active
+
+下面2个查询是等价的
+title：（quick OR brown)
+title: (quick brown)
+
+如果要包含精确的的词语，可以用quota
+author:"john smith"  查询作者为john smith 而不是 john OR smith
+
+如果需要查询非null
+_exists_:title
+
+#### wildcards（通配符）
+
+通配符查询会使用大量的内存并且执行效率差
+
+#### 正则表达式
+
+name:/joh?n(ath[oa]n)/
+
+#### 模糊查询
+
+quick~ brwn~ foks~
+
+查询all terms 允许最大2个改变，改变可以是以下的情形
+* insertion
+* deletion
+* substitution of a single character
+* transposition of two adjacent characters
+
+缺省的变化值为2，可以进行修改
+quikc~1
+
+#### 距离查询
+
+允许指定的单词距离远或者不同的顺序
+“fox quick”～5
+
+query string中越接近原始文本中字段的顺序，则相关性越高
+
+"quick fox" 就比 "qucik brown fox"的相关性高
+
+#### 范围
+{min TO max}
+date: [2012-01-01 TO 2012-12-31]
+count:[1 TO 5]
+如果只有1个边界，则可以使用
+age: >10
+age: >=10
+age: <10
+
+#### boosting
+使用boost操作符^可以使1个term比另外一个term更有相关性，缺省的boost=1
+
+quick^2 fox
+
+#### boolean
+
+首选的操作符为+(must) and -(must not),
+quick brown +fox -news
+fox必须存在，news一定不存在，其他为可选择的，其他的存在可以增加相关性
+
+AND OR NOT 操作符也可以写成 && || !
+
+#### grouping
+(quick OR brown) AND fox
