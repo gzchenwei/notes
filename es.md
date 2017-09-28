@@ -755,6 +755,133 @@ GET /my_index/my_type/_search
 内部执行2次term查询，然后将2次查询的结果合并
 
 
+### 部署
+
+其它数据库可能需要调优，但总得来说，Elasticsearch 不需要。 如果你遇到了性能问题，解决方法通常是更好的数据布局或者更多的节点。 在 Elasticsearch 中很少有“神奇的配置项”， 如果存在，我们也已经帮你优化了！
+
+* 最小主节点数目
+discovery.zen.minimum_master_nodes: 2
+可以通过动态的方式调整，调整后，将成为一个永久配置，无论配置文件里面的配置如何，这个会有限生效
+```
+PUT /_cluster/settings
+{
+    "persistent" : {
+        "discovery.zen.minimum_master_nodes" : 2
+    }
+}
+```
+
+* 集群恢复方面的配置
+gateway.recover_after_nodes： 8
+gateway.expected_nodes: 10
+gateway.recover_after_time: 5m
+
+以上配置意味
+* 等待集群至少8个节点
+* 等待5分钟，或者10个节点上线后，才进行数据恢复，取决于那个条件先达到
+
+可以在集群重启的时候避免过多的分片交换，会让数据恢复从几个小时缩短为几秒钟
+这些配置不能动态更新
+
+#### 使用单播代替组播
+防止节点意外加入生产环境
+
+### 不要触碰以下配置
+
+* 垃圾回收器
+* 线程池
+大多数的I/O操作是由lucene线程管理的，而不是es
+
+#### 堆内存
+es默认安装后的堆内存是1G，对于业务来说，可能太小了
+
+* 把你的内存的一半给lucene
+对于es来说，除了堆内存，还有一个内存消耗大户，非堆内存：lucene
+
+lucene设计为可以利用操作系统底层机制来缓存内存数据结构，lucene的段是分别存储在单个文件的，段是不可变的，因此文件也不会变化，这是对缓存友好的
+如果把内存都留给堆内存，那么就不会有内存给lucene，从而导致检索缓慢
+
+* 不要超过32Gb
+* 关闭swapping
+vm.swappiness = 1
+* 文件描述符和mmap
+  + 足够的文件描述符
+  + 足够的mmapped文件
+   sysctl -w vm.max_map_count=262144
+
+
+### 索引性能技巧
+
+#### 科学的性能测试
+合理的测试方法如下：
++ 在单个节点上，对单个分片，无副本的场景测试性能
++ 在100%默认配置的情况下记录性能结果，这样就有了一个对比基线
++ 确保性能测试运行足够长的时间（30分钟以上）这样可以评估长期性能，而不是短期的峰值或延迟
++ 开始在基线上逐一修改默认值，严格测试
+
+#### 使用批量请求并调整其大小
+应该使用批量请求，每次请求5-15M的数据，然后缓慢增加，测试性能
+
+#### 段和合并
+
+es会自动限制索引请求到单个线程里，es在默认设置里面比较保守，不希望搜索被后台合并影响，不过对于ssd硬盘，限流阀值太低
+
+默认为20M/s，对机械硬盘是个不错的设置，如果用ssd，则可以考虑提高到100-200M
+```
+PUT /_cluster/settings
+{
+    "persistent" : {
+        "indices.store.throttle.max_bytes_per_sec" : "100mb"
+    }
+}
+```
+如果在做批量导入，完全不在意搜索，可以彻底关闭限流
+```
+PUT /_cluster/settings
+{
+    "transient" : {
+        "indices.store.throttle.type" : "none"
+    }
+}
+```
+
+如果使用机械硬盘，需要添加如下的配置
+```
+index.merge.scheduler.max_thread_count: 1
+```
+
+机械硬盘在并发i/o支持方面差，所以需要降低每个索引并发访问磁盘的线程数，这个设置允许1+2个线程进行磁盘操作
+
+#### 其他
+* 如果不需要近实时搜索，可以考虑把索引的index.refresh_interval改到30s
+* 如果做大批量导入，考虑设置index.number_of_replicas:0关闭副本，文档在复制的时候，整个文档内容都被发往副本，然后重新索引及合并
+  如果关闭副本，等写入完成之后再开启副本，恢复过程本质上只需要复制字节
+
+#### 推迟分片分配
+如果在确认有问题的节点很快会重新恢复，则可以推迟分片分配，否则可能会造成大量的不必要的开销（分片提拔、节点建数据拷贝，分片移动等等）
+
+修改默认延时
+```
+PUT /_all/_settings
+{
+  "settings": {
+    "index.unassigned.node_left.delayed_timeout": "5m"
+  }
+}
+```
+通过_all索引，可以为集群里面所有的索引使用这个参数
+默认时间修改为5分钟
+
+延迟分配不会阻止副本被提拔为主分片，集群还是会进行必要的提拔来让集群回到yellow
+
+#### 自动取消分片迁移
+如果节点在超时之后再回来，且集群还没有完成分片的移动，会发生什么事情呢？在这种情形下， Elasticsearch 会检查该机器磁盘上的分片数据和当前集群中的活跃主分片的数据是不是一样 — 如果两者匹配， 说明没有进来新的文档，包括删除和修改 — 那么 master 将会取消正在进行的再平衡并恢复该机器磁盘上的数据。
+
+之所以这样做是因为本地磁盘的恢复永远要比网络间传输要快，并且我们保证了他们的分片数据是一样的，这个过程可以说是双赢。
+
+如果分片已经产生了分歧（比如：节点离线之后又索引了新的文档），那么恢复进程会继续按照正常流程进行。重新加入的节点会删除本地的、过时的数据，然后重新获取一份新的。
+
+
 
 
 ### query string query
@@ -840,3 +967,71 @@ AND OR NOT 操作符也可以写成 && || !
 
 #### grouping
 (quick OR brown) AND fox
+
+
+### query DSL
+
+#### query context
+
+查询上下文主要回答文档和查询的匹配情况，查询会计算_score
+
+#### filter context
+
+过滤上下文主要是回答查询是否匹配文档，不需要计算score,主要用来过滤结构化的数据，比如
+* 时间戳是否在2015-2016之间
+* 状态是否设置为published
+
+filter会自动缓存
+
+
+
+### 常用命令
+
+* 查看master信息
+```
+curl 'localhost:9200/_cat/master?v'
+```
+* 查看健康状态
+```
+curl 'localhost:9200/_cat/health?v'
+```
+* 查看节点信息
+```
+curl 'localhost:9200/_cat/nodes?v'
+```
+* 查看分配信息
+```
+curl 'localhost:9200/_cat/allocation?v'
+```
+* 查询索引信息
+```
+curl 'localhost:9200/_cat/indices?v'
+```
+* 查询节点负载
+```
+curl 'localhost:9200/_cat/fielddata?v'
+```
+* 查看恢复信息
+```
+curl 'localhost:9200/_cat/recovery?v'
+```
+* 查看线程池信息
+```
+curl 'localhost:9200/_cat/thread_pool?v
+```
+* 查看分片信息
+```
+curl 'localhost:9200/_cat/shards?v'
+```
+* 关掉一个节点
+```
+curl 'localhost:9200/_cluster/nodes/_local_shutdown'
+curl -XPOST 'http://localhost:9200/_cluster/nodes/nodeId1,nodeId2/_shutdown'
+curl -XPOST 'http://localhost:9200/_cluster/nodes/_master/_shutdown'
+```
+* 关掉所有节点
+```
+curl -XPOST 'http://localhost:9200/_shutdown'
+curl -XPOST 'http://localhost:9200/_cluster/nodes/_shutdown'
+curl -XPOST 'http://localhost:9200/_cluster/nodes/_all/_shutdown'
+```
