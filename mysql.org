@@ -93,3 +93,5 @@
        聚族索引所有记录都加X锁和GAP锁
 ** 参考
     http://hedengcheng.com/?p=771#_Toc374698308 
+
+
