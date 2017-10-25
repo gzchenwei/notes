@@ -18,4 +18,10 @@ ud线程1000，MALLOC_ARENA_MAX=32
 
 ud线程1000，MALLOC_ARENA_MAX=16
 
-重启时间3:07，200个进程运行folder-detail ，working比较高，
+重启时间3:07，200个进程运行folder-detail ，结束4:00，working比较高，最高去到1000+，稳定在400左右，连接数位置在2500左右，内存33g
+
+第五次条件
+
+ud线程1000，MALLOC_ARENA_MAX=32
+
+重启时间4:16，
