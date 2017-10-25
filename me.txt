@@ -1,0 +1,1 @@
+http://pythonguidecn.readthedocs.io/zh/latest/
