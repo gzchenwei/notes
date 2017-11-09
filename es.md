@@ -232,7 +232,7 @@ consistency可以设置为one、all、quorum默认值为quorum
 分析包含下面的过程：
   + 将文本分成合适倒排索引的独立的词条
   + 将词条统一化为标准格式以提高他们的搜索性
-分析器执行上面的工作，实际上是将三个功能封装
+  分析器执行上面的工作，实际上是将三个功能封装
   + 字符过滤器
   + 分词器
   + token 过滤器
@@ -247,28 +247,28 @@ es支持以下域类型
   * 日期： date
 
 * 查看映射
-/_mapping 查看es在一个或者多个索引中的一个或者多个类型的映射
+  /_mapping 查看es在一个或者多个索引中的一个或者多个类型的映射
 
 当索引一个包含新域的文档--es会使用动态映射，通过JSON中基本数据类型，尝试猜测域类型
 
 * 自定义域映射
-自定义映射允许执行下面的操作
+  自定义映射允许执行下面的操作
   + 全文字符串域和精确值字符串域的区别
   + 使用特定语言分析器
   + 优化域以适应部分匹配
   + 指定自定义数据格式
   + 还有更多
-默认，string类型域会被认为包含全文，就是说，他们的值在索引前，会通过一个分析器，针对这个域的查询在搜索前也会经过一个分析器
-string域映射的2个最重要的属性是**index** **analyzer**
+    默认，string类型域会被认为包含全文，就是说，他们的值在索引前，会通过一个分析器，针对这个域的查询在搜索前也会经过一个分析器
+    string域映射的2个最重要的属性是**index** **analyzer**
 
 * index
-index属性控制怎样索引字符串，可以是下面三个值
+  index属性控制怎样索引字符串，可以是下面三个值
   + analyzed（默认值）  首先分析字符串，然后索引它，换句话，以全文索引这个域
   + not_analyzed 索引这个域，所以他能够被搜索，但索引的是精确值
   + no 不索引这个域，这个域不会被索引到
 
 * analyzer
-默认es使用standard分析器，可以使用一个内置的分析器替代它
+  默认es使用standard分析器，可以使用一个内置的分析器替代它
 ```
 {
    “tweet”： {
@@ -284,7 +284,7 @@ index属性控制怎样索引字符串，可以是下面三个值
 **尽管可以增加一个存在的映射，但是不能修改存在的映射，如果映射已经存在，那么该域的数据可能已经被索引，如果试图修改，则可能导致索引的数据出错
 
 * 新增加映射
-给tweet增加一个名为tag的文本域
+  给tweet增加一个名为tag的文本域
 
 ```
   PUT /gb/_mapping/tweet
@@ -608,11 +608,11 @@ PUT /my_index
 
 #### 属性
 * type
-字段的数据类型，例如string或date
+  字段的数据类型，例如string或date
 * index
-字段是否被当成全文来搜索(analyzed),或被当成一个准确的值（not_analyzed)，还是完全不可搜索（no）
+  字段是否被当成全文来搜索(analyzed),或被当成一个准确的值（not_analyzed)，还是完全不可搜索（no）
 * analyzer
-确定在索引和搜索时全文字段使用的analyer
+  确定在索引和搜索时全文字段使用的analyer
 
 #### 元数据:_source字段
 默认，es在_source字段存储达标文档体的json字符串，和所有被存储的字段一样，在被写入磁盘前会压缩
@@ -760,8 +760,8 @@ GET /my_index/my_type/_search
 其它数据库可能需要调优，但总得来说，Elasticsearch 不需要。 如果你遇到了性能问题，解决方法通常是更好的数据布局或者更多的节点。 在 Elasticsearch 中很少有“神奇的配置项”， 如果存在，我们也已经帮你优化了！
 
 * 最小主节点数目
-discovery.zen.minimum_master_nodes: 2
-可以通过动态的方式调整，调整后，将成为一个永久配置，无论配置文件里面的配置如何，这个会有限生效
+  discovery.zen.minimum_master_nodes: 2
+  可以通过动态的方式调整，调整后，将成为一个永久配置，无论配置文件里面的配置如何，这个会有限生效
 ```
 PUT /_cluster/settings
 {
@@ -772,9 +772,9 @@ PUT /_cluster/settings
 ```
 
 * 集群恢复方面的配置
-gateway.recover_after_nodes： 8
-gateway.expected_nodes: 10
-gateway.recover_after_time: 5m
+  gateway.recover_after_nodes： 8
+  gateway.expected_nodes: 10
+  gateway.recover_after_time: 5m
 
 以上配置意味
 * 等待集群至少8个节点
@@ -790,24 +790,24 @@ gateway.recover_after_time: 5m
 
 * 垃圾回收器
 * 线程池
-大多数的I/O操作是由lucene线程管理的，而不是es
+  大多数的I/O操作是由lucene线程管理的，而不是es
 
 #### 堆内存
 es默认安装后的堆内存是1G，对于业务来说，可能太小了
 
 * 把你的内存的一半给lucene
-对于es来说，除了堆内存，还有一个内存消耗大户，非堆内存：lucene
+  对于es来说，除了堆内存，还有一个内存消耗大户，非堆内存：lucene
 
 lucene设计为可以利用操作系统底层机制来缓存内存数据结构，lucene的段是分别存储在单个文件的，段是不可变的，因此文件也不会变化，这是对缓存友好的
 如果把内存都留给堆内存，那么就不会有内存给lucene，从而导致检索缓慢
 
 * 不要超过32Gb
 * 关闭swapping
-vm.swappiness = 1
+  vm.swappiness = 1
 * 文件描述符和mmap
   + 足够的文件描述符
   + 足够的mmapped文件
-   sysctl -w vm.max_map_count=262144
+     sysctl -w vm.max_map_count=262144
 
 
 ### 索引性能技巧
@@ -1034,5 +1034,11 @@ curl -XPOST 'http://localhost:9200/_cluster/nodes/_master/_shutdown'
 curl -XPOST 'http://localhost:9200/_shutdown'
 curl -XPOST 'http://localhost:9200/_cluster/nodes/_shutdown'
 curl -XPOST 'http://localhost:9200/_cluster/nodes/_all/_shutdown'
+```
+
+* 集群统计
+
+```
+curl http://localhost:9200/_cluster/stats?human&pretty
 ```
 
