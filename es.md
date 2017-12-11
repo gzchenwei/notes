@@ -1045,3 +1045,22 @@ curl -XPOST 'http://localhost:9200/_cluster/nodes/_all/_shutdown'
 curl http://localhost:9200/_cluster/stats?human&pretty
 ```
 
+
+
+### 故障恢复
+
+* **设置故障恢复阈值**
+
+ES集群在故障恢复的初期，由于部分节点还未恢复服务，ES会检测到大量分片处于非健康状态，而进行分片的重建，迁移，造成不需要的资源开销。通过合理设置恢复参数，可以有效避免上述问题：
+最小恢复节点数（存活节点数达到这个阈值，才会进行恢复）
+
+> gateway.recover_after_nodes: 80
+
+* **集群节点数**
+
+> gateway.expected_nodes: 100
+
+恢复等待时间（达到节点规模阈值后，多久后开始执行恢复）
+
+> gateway.recover_after_time: 5m
+
