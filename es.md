@@ -1045,6 +1045,13 @@ curl -XPOST 'http://localhost:9200/_cluster/nodes/_all/_shutdown'
 curl http://localhost:9200/_cluster/stats?human&pretty
 ```
 
+* 查看详细索引分片信息
+
+```
+GET _cluster/health?level=indices
+GET _cluster/health?level=shards
+```
+
 
 
 ### 故障恢复
@@ -1064,3 +1071,13 @@ ES集群在故障恢复的初期，由于部分节点还未恢复服务，ES会�
 
 > gateway.recover_after_time: 5m
 
+
+
+### 节点类型
+
+* **主(master)节点：**在一个节点上当node.master设置为True（默认）的时候，它有资格被选作为主节点，控制整个集群。
+* **数据(data)节点：**在一个节点上node.data设置为True（默认）的时候。该节点保存数据和执行数据相关的操作，如增删改查，搜索，和聚合。
+* **客户端节点：**当一个节点的node.master和node.data都设置为false的时候，它既不能保持数据也不能成为主节点，该节点可以作为客户端节点，可以响应用户的情况，并把相关操作发送到其他节点。
+
+
+* **部落节点： **当一个节点配置tribe.*的时候，它是一个特殊的客户端，它可以连接多个集群，在所有连接的集群上执行搜索和其他操作。
