@@ -1052,6 +1052,28 @@ GET _cluster/health?level=indices
 GET _cluster/health?level=shards
 ```
 
+* 禁止/启用自动分片
+
+```
+curl -XPUT http://127.0.0.1:9200/_cluster/settings -d' 
+{ 
+	"transient" : { 
+		"cluster.routing.allocation.enable" : "none" 
+	} 
+}'
+
+curl -XPUT http://127.0.0.1:9200/_cluster/settings -d' 
+{ 
+	"transient" : { 
+		"cluster.routing.allocation.enable" : "all" 
+	} 
+}'
+```
+
+
+
+
+
 
 
 ### 故障恢复
@@ -1081,3 +1103,27 @@ ES集群在故障恢复的初期，由于部分节点还未恢复服务，ES会�
 
 
 * **部落节点： **当一个节点配置tribe.*的时候，它是一个特殊的客户端，它可以连接多个集群，在所有连接的集群上执行搜索和其他操作。
+
+
+
+####  安全重启节点
+
+```
+curl -XPUT http://192.168.1.2:9200/_cluster/settings -d'
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "none"
+    }
+}'
+
+curl -XPOST http://192.168.1.3:9200/_cluster/nodes/_local/_shutdown
+
+curl -XPUT http://192.168.1.2/_cluster/settings -d'
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "all"
+    }
+}'
+
+```
+
