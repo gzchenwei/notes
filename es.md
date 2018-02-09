@@ -1135,9 +1135,9 @@ http://blog.csdn.net/jiao_fuyou/article/details/50501717
 * 集群范围内分配
 
 ```
-curl -XPUT "http://ESnode:9200/_cluster/settings" -d '{
+curl -XPUT "http://localhost:9200/_cluster/settings" -d '{
   "transient" : {
-   "cluster.routing.allocation.include._ip" "10.0.1.112,10.0.1.114"
+   "cluster.routing.allocation.include._ip" : "10.12.0.110,10.12.0.111,10.12.0.112,10.12.0.113"
    }
   }'
 ```
@@ -1192,4 +1192,6 @@ https://www.elastic.co/guide/cn/elasticsearch/guide/current/_monitoring_individu
 #### es 调优
 
 https://www.elastic.co/guide/cn/elasticsearch/guide/current/indexing-performance.html
+
+http://blog.csdn.net/u013613428/article/details/77963604
 
