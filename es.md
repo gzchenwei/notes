@@ -1124,6 +1124,29 @@ curl -XPUT http://192.168.1.2/_cluster/settings -d'
         "cluster.routing.allocation.enable" : "all"
     }
 }'
+```
+
+
+
+#### 控制分片和副本的分配
+
+http://blog.csdn.net/jiao_fuyou/article/details/50501717
+
+* 集群范围内分配
 
 ```
+curl -XPUT "http://ESnode:9200/_cluster/settings" -d '{
+  "transient" : {
+   "cluster.routing.allocation.include._ip" "10.0.1.112,10.0.1.114"
+   }
+  }'
+```
+
+
+
+#### es 监控
+
+https://www.datadoghq.com/blog/monitor-elasticsearch-performance-metrics/#toc-search-performance-metrics
+
+
 
