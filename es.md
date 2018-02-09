@@ -1148,5 +1148,48 @@ curl -XPUT "http://ESnode:9200/_cluster/settings" -d '{
 
 https://www.datadoghq.com/blog/monitor-elasticsearch-performance-metrics/#toc-search-performance-metrics
 
+https://www.elastic.co/guide/cn/elasticsearch/guide/current/_monitoring_individual_nodes.html
 
+需要的监控项目
+
+* 查询和索引性能
+  + 查询负载
+    - 当前的查询数量
+    - search thread pool queue
+  + 查询延迟
+    - 平均查询延迟
+  + 获取延迟
+  + 索引延迟
+  + 索引刷新延迟
+
+
+* 内存和垃圾回收
+  + jvm heap
+    - 当前使用的heap
+    - 已经使用的heap
+  + 垃圾回收
+    - 垃圾回收频率
+    - 垃圾回收时间
+  + 内存使用
+* 主机级别系统和网络状况
+  + cpu
+  + i/o
+  + 磁盘空间
+  + 网络流量
+  + 打开文件
+  + http链接
+* 集群健康状态和节点可见性
+  + 集群状态
+  + 初始化和未分配的分片
+  + 集群节点
+* 资源饱和和错误
+  + thread pool 队列和拒绝
+  + bulk 拒绝和队列
+  + cache使用
+  + 等待的任务
+  + 不成功的get请求
+
+#### es 调优
+
+https://www.elastic.co/guide/cn/elasticsearch/guide/current/indexing-performance.html
 
