@@ -1026,6 +1026,27 @@ curl 'localhost:9200/_cat/thread_pool?v
 ```
 curl 'localhost:9200/_cat/shards?v'
 ```
+* 查看集群统计信息
+```
+curl -XGET 'http://localhost:9200/_cluster/stats?human&pretty'
+```
+
+* 查看线程池信息
+```
+curl 'localhost:9200/_cat/thread_pool'
+```
+
+* 查看集群设置
+
+```
+curl -XGET localhost:9200/_cluster/settings?pretty
+```
+
+* 查看节点统计信息
+```
+curl -XGET 'http://localhost:9200/_nodes/stats'	
+```
+
 * 关掉一个节点
 ```
 curl 'localhost:9200/_cluster/nodes/_local_shutdown'
@@ -1118,7 +1139,7 @@ curl -XPUT http://192.168.1.2:9200/_cluster/settings -d'
 
 curl -XPOST http://192.168.1.3:9200/_cluster/nodes/_local/_shutdown
 
-curl -XPUT http://192.168.1.2/_cluster/settings -d'
+curl -XPUT http://localhost:9200/_cluster/settings -d'
 {
     "transient" : {
         "cluster.routing.allocation.enable" : "all"
@@ -1194,4 +1215,85 @@ https://www.elastic.co/guide/cn/elasticsearch/guide/current/_monitoring_individu
 https://www.elastic.co/guide/cn/elasticsearch/guide/current/indexing-performance.html
 
 http://blog.csdn.net/u013613428/article/details/77963604
+
+* 关闭索引
+
+```
+curl -XPOST http://example.comr:9200/my_index/_close
+curl -XPOST http://example.comr:9200/my_index/_open
+```
+
+#### 设置相关
+
+Resetting persistent or transient settings can be done by assigning a `null` value. If a transient setting is reset, the persistent setting is applied if available. Otherwise Elasticsearch will fallback to the setting defined at the configuration file or, if not existent, to the default value. Here is an example:
+
+```
+PUT /_cluster/settings
+{
+    "transient" : {
+        "indices.recovery.max_bytes_per_sec" : null
+    }
+}
+```
+
+#### 索引模板
+
+```
+PUT /_template/my_logs 
+{
+  "template": "logstash-*", 
+  "order":    1, 
+  "settings": {
+    "number_of_shards": 1 
+  },
+}
+```
+
+
+
+#### HEAP
+
+* 段内存
+
+ES的data node存储数据并非只是耗费磁盘空间的，为了加速数据的访问，每个segment都有会一些索引数据驻留在heap里。因此segment越多，瓜分掉的heap也越多，并且这部分heap是无法被GC掉的！ 理解这点对于监控和管理集群容量很重要，当一个node的segment memory占用过多的时候，就需要考虑删除、归档数据，或者扩容了。
+
+查看一个node上所有segment占用的memory总和:
+
+```
+curl 'http://localhost:9200/_cat/nodes?v&h=name,port,sm'
+```
+
+那么有哪些途径减少data node上的segment memory占用呢？ 总结起来有三种方法:
+
+1.  删除不用的索引
+2.  关闭索引 （文件仍然存在于磁盘，只是释放掉内存）。需要的时候可以重新打开。
+3.  定期对不再更新的索引做optimize (ES2.0以后更改为force merge api)。这Optimze的实质是对segment file强制做合并，可以节省大量的segment memory。
+
+* filter cache
+* field data cache
+* bulk 队列
+* 索引缓存
+* state buffer
+* 超大搜索聚合结果集的fetch
+* 对高cardinality字段做terms aggregation
+
+
+
+
+模板设置
+
+```
+curl -XPUT http://localhost:9200/_template/all_logs -d '{
+"template": "*",
+"settings": {
+"number_of_shards": 8,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s"
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+```
 
