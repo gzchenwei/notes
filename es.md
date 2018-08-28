@@ -1304,3 +1304,4 @@ curl -XPUT http://localhost:9200/_template/all_logs -d '{
 提示3：您可以在集群节点上保存的分片数量与您可用的堆内存大小成正比，但这在Elasticsearch中没有的固定限制。 一个很好的经验法则是：确保每个节点的分片数量保持在低于每1GB堆内存对应集群的分片在20-25之间。 因此，具有30GB堆内存的节点最多可以有600-750个分片，但是进一步低于此限制，您可以保持更好。 这通常会帮助群体保持处于健康状态。
 
 
+index.routing.allocation.total_shards_per_node 
