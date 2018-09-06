@@ -1295,6 +1295,68 @@ curl -XPUT http://localhost:9200/_template/all_logs -d '{
 }
 }'
 
+
+{
+    "template": "proxytrans_*",
+    "mappings" : {
+      "_default_" : {
+        "dynamic_templates" : [
+          {
+            "message_field" : {
+              "path_match" : "message",
+              "mapping" : {
+                "norms" : false,
+                "type" : "text"
+              },
+              "match_mapping_type" : "string"
+            }
+          },
+          {
+            "string_fields" : {
+              "mapping" : {
+                "norms" : false,
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "ignore_above" : 256,
+                    "type" : "keyword"
+                  }
+                }
+              },
+              "match_mapping_type" : "string",
+              "match" : "*"
+            }
+          }
+        ],
+        "_all" : {
+          "enabled" : false
+        },
+        "properties" : {
+          "@timestamp" : {
+            "include_in_all" : false,
+            "type" : "date"
+          },
+          "geoip" : {
+            "dynamic" : true,
+            "properties" : {
+              "ip" : {
+                "type" : "ip"
+              },
+              "location" : {
+                "type" : "geo_point"
+              }
+            }
+          },
+          "@version" : {
+            "include_in_all" : false,
+            "type" : "keyword"
+          }
+        }
+      }
+    },
+    "aliases" : { }
+}
+
 ```
 
 提示1：小分片会导致小分段(segment)，从而增加开销。目的是保持平均分片大小在几GB和几十GB之间。对于具有基于时间的数据的用例，通常看到大小在20GB和40GB之间的分片。
