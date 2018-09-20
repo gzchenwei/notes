@@ -163,3 +163,5 @@ fenced.log
 https://access.redhat.com/documentation/zh-cn/red_hat_enterprise_linux/5/html/cluster_suite_overview/s1-service-management-overview-cso
 
 http://blog.51cto.com/jiayimeng/1877007
+
+pcs resource defaults resource-stickiness=100
