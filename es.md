@@ -210,10 +210,10 @@ consistency可以设置为one、all、quorum默认值为quorum
 * 局部更新文档
 
 ![update](update.jpg)
-    +  客户端向node 1 发送更新请求
-    +  请求转发到主分片node 3
-    +  node 3 从主分片检索文档，修改_source中的JSON，并且尝试重新索引主分片的文档，如果文档被另一个进程修改，会重试步骤3，超过retry_on_conflict后放弃
-    +  如果node 3 成功更新文档，将新版本的文档并行转发node1和node2，重新建立索引，所有分片返回成功，node3向协调节点返回成功，协调节点向客户端返回成功
+​    +  客户端向node 1 发送更新请求
+​    +  请求转发到主分片node 3
+​    +  node 3 从主分片检索文档，修改_source中的JSON，并且尝试重新索引主分片的文档，如果文档被另一个进程修改，会重试步骤3，超过retry_on_conflict后放弃
+​    +  如果node 3 成功更新文档，将新版本的文档并行转发node1和node2，重新建立索引，所有分片返回成功，node3向协调节点返回成功，协调节点向客户端返回成功
 
 * 多文档模式
 
@@ -396,13 +396,13 @@ terms 查询和 term 查询一样，但它允许你指定多值进行匹配。�
 bool查询可以将多查询组合一起，接受以下参数
 
 * must
-      文档必须匹配条件
+  ​    文档必须匹配条件
 * must_not
-      文档必须不匹配
+  ​    文档必须不匹配
 * should
-      如果满足语句中的任意语句，将增加_score
+  ​    如果满足语句中的任意语句，将增加_score
 * filter
-      必须匹配，但不评分
+  ​    必须匹配，但不评分
 
 ### 验证查询
 ```
@@ -438,9 +438,9 @@ delete /*
 #### 索引设置
 下面是2个最重要的设置
 number_of_primary_shards
-    每个索引的主分片数，默认为5，索引创建后不能修改
+​    每个索引的主分片数，默认为5，索引创建后不能修改
 number_of_replicas
-    每个主分片的副本数，默认为1，可以随时修改
+​    每个主分片的副本数，默认为1，可以随时修改
 ```
 PUT /my_temp_index
 {
@@ -1365,5 +1365,263 @@ curl -XPUT http://localhost:9200/_template/all_logs -d '{
 
 提示3：您可以在集群节点上保存的分片数量与您可用的堆内存大小成正比，但这在Elasticsearch中没有的固定限制。 一个很好的经验法则是：确保每个节点的分片数量保持在低于每1GB堆内存对应集群的分片在20-25之间。 因此，具有30GB堆内存的节点最多可以有600-750个分片，但是进一步低于此限制，您可以保持更好。 这通常会帮助群体保持处于健康状态。
 
-
 index.routing.allocation.total_shards_per_node 
+
+antivirus
+
+```
+curl -XPUT http://localhost:9200/_template/antivirus_logs -d '{
+"template": "antivirus_*",
+"order": 1,
+"settings": {
+"number_of_shards": 5,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+```
+
+auditbeat-6
+
+```
+curl -XPUT http://localhost:9200/_template/auditbeat_logs -d '{
+"template": "auditbeat*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+cim
+
+```
+curl -XPUT http://localhost:9200/_template/cim_logs -d '{
+"template": "cim_*",
+"order": 1,
+"settings": {
+"number_of_shards": 4,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+convert
+
+```
+curl -XPUT http://localhost:9200/_template/convert_logs -d '{
+"template": "convertlog_*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+da-
+
+```
+curl -XPUT http://localhost:9200/_template/da_logs -d '{
+"template": "da-*",
+"order": 1,
+"settings": {
+"number_of_shards": 5,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+heartbeat
+
+```
+curl -XPUT http://localhost:9200/_template/heartbeart_logs -d '{
+"template": "heartbeat*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+log_
+
+```
+curl -XPUT http://localhost:9200/_template/log_logs -d '{
+"template": "log_*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+logstatsh-nginx
+
+```
+curl -XPUT http://localhost:9200/_template/logstash-nginx_logs -d '{
+"template": "logstash-nginx*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+mysql_
+
+```
+curl -XPUT http://localhost:9200/_template/mysql_logs -d '{
+"template": "mysql_*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+proxysvr
+
+```
+curl -XPUT http://localhost:9200/_template/proxysvr_logs -d '{
+"template": "proxysvr_*",
+"order": 1,
+"settings": {
+"number_of_shards": 4,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+proxytrans
+
+```
+curl -XPUT http://localhost:9200/_template/proxytrans_logs -d '{
+"template": "proxytrans_*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+rmisvr_
+
+```
+curl -XPUT http://localhost:9200/_template/rmisvr_logs -d '{
+"template": "rmisvr_*",
+"order": 1,
+"settings": {
+"number_of_shards": 4,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+udtrans
+
+```
+curl -XPUT http://localhost:9200/_template/ud_trans_logs -d '{
+"template": "ud_trans_*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+udsync
+
+```
+curl -XPUT http://localhost:9200/_template/udsync_logs -d '{
+"template": "udsync*",
+"order": 1,
+"settings": {
+"number_of_shards": 4,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+webadmin
+
+```
+curl -XPUT http://localhost:9200/_template/webadmin_logs -d '{
+"template": "webadmin*",
+"order": 1,
+"settings": {
+"number_of_shards": 2,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+```
+
+
+
