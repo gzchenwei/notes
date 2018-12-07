@@ -1392,7 +1392,7 @@ curl -XPUT http://localhost:9200/_template/auditbeat_logs -d '{
 "template": "auditbeat*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1409,7 +1409,7 @@ curl -XPUT http://localhost:9200/_template/cim_logs -d '{
 "template": "cim_*",
 "order": 1,
 "settings": {
-"number_of_shards": 4,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1426,7 +1426,7 @@ curl -XPUT http://localhost:9200/_template/convert_logs -d '{
 "template": "convertlog_*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1439,11 +1439,11 @@ curl -XPUT http://localhost:9200/_template/convert_logs -d '{
 da-
 
 ```
-curl -XPUT http://localhost:9200/_template/da_logs -d '{
+curl -XPUT http://localhost:9200/_template/da-logs -d '{
 "template": "da-*",
 "order": 1,
 "settings": {
-"number_of_shards": 5,
+"number_of_shards": 2,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1460,7 +1460,7 @@ curl -XPUT http://localhost:9200/_template/heartbeart_logs -d '{
 "template": "heartbeat*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1477,7 +1477,7 @@ curl -XPUT http://localhost:9200/_template/log_logs -d '{
 "template": "log_*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1494,7 +1494,7 @@ curl -XPUT http://localhost:9200/_template/logstash-nginx_logs -d '{
 "template": "logstash-nginx*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1511,7 +1511,7 @@ curl -XPUT http://localhost:9200/_template/mysql_logs -d '{
 "template": "mysql_*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1545,7 +1545,7 @@ curl -XPUT http://localhost:9200/_template/proxytrans_logs -d '{
 "template": "proxytrans_*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1579,7 +1579,7 @@ curl -XPUT http://localhost:9200/_template/ud_trans_logs -d '{
 "template": "ud_trans_*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1596,7 +1596,7 @@ curl -XPUT http://localhost:9200/_template/udsync_logs -d '{
 "template": "udsync*",
 "order": 1,
 "settings": {
-"number_of_shards": 4,
+"number_of_shards": 2,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1613,7 +1613,7 @@ curl -XPUT http://localhost:9200/_template/webadmin_logs -d '{
 "template": "webadmin*",
 "order": 1,
 "settings": {
-"number_of_shards": 2,
+"number_of_shards": 1,
 "index.routing.allocation.include.box_type": "hot",
 "index.refresh_interval": "30s",
 "index.translog.durability": "async",
@@ -1623,5 +1623,83 @@ curl -XPUT http://localhost:9200/_template/webadmin_logs -d '{
 }'
 ```
 
+curl -XPUT http://localhost:9200/_template/udsvr_logs -d '{
+"template": "udsvr*",
+"order": 1,
+"settings": {
+"number_of_shards": 16,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
 
+
+
+curl -XPUT http://localhost:9200/_template/pop3svr_logs -d '{
+"template": "pop3svr*",
+"order": 1,
+"settings": {
+"number_of_shards": 16,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+
+
+curl -XPUT http://localhost:9200/_template/da_logs -d '{
+"template": "da_*",
+"order": 1,
+"settings": {
+"number_of_shards": 16,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+
+
+curl -XPUT http://localhost:9200/_template/mttrans_logs -d '{
+"template": "mtatrans_*",
+"order": 1,
+"settings": {
+"number_of_shards": 16,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+
+
+curl -XPUT http://localhost:9200/_template/mta_trans-logs -d '{
+"template": "mta_trans-*",
+"order": 1,
+"settings": {
+"number_of_shards": 16,
+"index.routing.allocation.include.box_type": "hot",
+"index.refresh_interval": "30s",
+"index.translog.durability": "async",
+"index.translog.sync_interval": "30s",
+"index.translog.flush_threshold_size": "1gb"
+}
+}'
+
+force merge API
+这里有3个参数可以用
+
+max_num_segments  期望merge到多少个segments，1的意思是强行merge到1个segment
+only_expunge_deletes 只做清理有deleted的segments，即瘦身
+flush  清理完执行一下flush，默认是true
 
