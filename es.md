@@ -1751,3 +1751,18 @@ https://www.kancloud.cn/devops-centos/centos-linux-devops/450274
 "index.merge.scheduler.max_thread_count" : 1
 
 curl 'localhost:9200/_nodes/hot_threads'
+
+移动分片。
+curl -XPOST 'http://127.0.0.1:9200/_cluster/reroute' -d '{
+"commands": [
+ {
+ "move": {
+   "index": "cac_audit_2018_10_29",
+   "shard": 3,
+   "from_node": "hzxs-esdata-23.icoremail.net",
+   "to_node": "hzxs-esdata-4.icoremail.net"
+  }
+ }
+]
+}'
+
